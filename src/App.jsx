@@ -5,6 +5,7 @@ import { db } from './firebaseConfig';
 import { ref, onValue } from 'firebase/database';
 import { MapContainer, TileLayer, CircleMarker, Popup, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
+import Select from 'react-select';
 import 'leaflet/dist/leaflet.css'; 
 import './App.css'; // Importa o CSS que acabamos de mudar
 import logoGefron from './assets/gefron-logo.jpg'; 
@@ -20,6 +21,8 @@ function App() {
   const [offlineEvents, setOfflineEvents] = useState([]);
   const [lastMessageTime, setLastMessageTime] = useState(Date.now());
   const [mapInstance, setMapInstance] = useState(null);
+  const [selectedChips, setSelectedChips] = useState([]);
+  const [confirmedChips, setConfirmedChips] = useState(null);
 
   // atualiza a vista do mapa quando o centro mudar (evita remount do MapContainer)
   useEffect(() => {
@@ -35,15 +38,28 @@ function App() {
   // renderer em Canvas para melhorar performance com muitos pontos
   const canvasRenderer = useMemo(() => L.canvas({ padding: 0.5 }), []);
 
-  // prepara GeoJSON a partir de `pontos` para renderizar com um único layer (mais rápido)
+  // lista de chips disponíveis (para seleção)
+  const chipList = useMemo(() => {
+    const s = new Set(pontos.map(p => p.chipId).filter(Boolean));
+    return ['all', ...Array.from(s)];
+  }, [pontos]);
+
+  // pontos filtrados pelos chips confirmados (após o usuário clicar OK)
+  const pontosFiltrados = useMemo(() => {
+    if (!confirmedChips) return [];
+    if (confirmedChips.includes('all')) return pontos;
+    return pontos.filter(p => confirmedChips.includes(p.chipId));
+  }, [pontos, confirmedChips]);
+
+  // prepara GeoJSON a partir de `pontosFiltrados` para renderizar com um único layer (mais rápido)
   const pontosGeoJson = useMemo(() => ({
     type: 'FeatureCollection',
-    features: pontos.map(p => ({
+    features: pontosFiltrados.map(p => ({
       type: 'Feature',
       properties: p,
       geometry: { type: 'Point', coordinates: [Number(p.lng), Number(p.lat)] }
     }))
-  }), [pontos]);
+  }), [pontosFiltrados]);
 
   // Efeito que busca dados do Firebase — mantém TODOS os pontos
   useEffect(() => {
@@ -107,6 +123,12 @@ function App() {
 
   }, [lastMessageTime, pontos, isCurrentlyOffline]); 
 
+  // offlineEvents filtrados pelos chips confirmados (se houver seleção)
+  const offlineEventsFiltrados = useMemo(() => {
+    if (!confirmedChips || confirmedChips.includes('all')) return offlineEvents;
+    return offlineEvents.filter(e => confirmedChips.includes(e.chipId));
+  }, [offlineEvents, confirmedChips]);
+
 
   return (
     <div className="app-container">
@@ -122,14 +144,71 @@ function App() {
             {isCurrentlyOffline ? 'STATUS: OFFLINE' : 'STATUS: ONLINE'}
           </span>
         </div>
+        
+        {/* Mostra chips confirmados ou botão para abrir seleção */}
+        <div className="chip-selector">
+          {confirmedChips ? (
+            <>
+              <span>Celular(s) selecionado(s): <b>{confirmedChips.includes('all') ? 'Todos os celulares' : confirmedChips.join(', ')}</b></span>
+              <button className="btn small" onClick={() => setConfirmedChips(null)}>Alterar</button>
+              <span className="chip-count">Pontos: {pontosFiltrados.length}</span>
+            </>
+          ) : (
+            <>
+              <button className="btn" onClick={() => { setSelectedChips([]); setConfirmedChips(null); }}>Selecionar celular</button>
+            </>
+          )}
+        </div>
       </header>
-      
-      <MapContainer 
-        center={mapCenter} 
-        zoom={13} 
-        className="map-container-leaflet" 
-        whenCreated={setMapInstance}
-      >
+
+      {/* Tela de seleção modal/overlay: aparece enquanto não houver chip confirmado */}
+      { !confirmedChips && (
+        <div className="selection-overlay">
+          <div className="selection-card">
+            <h2>Selecionar celular(es)</h2>
+            {chipList.length === 1 && chipList[0] === 'all' ? (
+              <p>Carregando lista de celulares...</p>
+            ) : (
+              <>
+                <div style={{marginBottom:12}}>
+                  <Select
+                    isMulti
+                    options={chipList.map(c => ({ value: c, label: c === 'all' ? 'Todos os celulares' : c }))}
+                    value={selectedChips.map(v => ({ value: v, label: v === 'all' ? 'Todos os celulares' : v }))}
+                    onChange={(values) => {
+                      if (!values) return setSelectedChips([]);
+                      const vals = values.map(v => v.value);
+                      // if 'all' selected, keep only 'all'
+                      if (vals.includes('all')) setSelectedChips(['all']);
+                      else setSelectedChips(vals);
+                    }}
+                    placeholder="Pesquise e selecione celulares..."
+                    closeMenuOnSelect={false}
+                    styles={{
+                      menu: (provided) => ({ ...provided, zIndex: 2000 }),
+                    }}
+                  />
+                </div>
+                <div className="selection-actions">
+                  <button className="btn" onClick={() => { setSelectedChips([]); setConfirmedChips(null); }}>Cancelar</button>
+                  <button className="btn primary" onClick={() => {
+                    const toConfirm = selectedChips.length === 0 ? ['all'] : selectedChips;
+                    setConfirmedChips(toConfirm);
+                  }}>OK</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      { confirmedChips && (
+        <MapContainer 
+          center={mapCenter} 
+          zoom={13} 
+          className="map-container-leaflet" 
+          whenCreated={setMapInstance}
+        >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -162,8 +241,8 @@ function App() {
           />
         )}
 
-        {/* 2. Renderiza os "carimbos" de sinal perdido (sem mudanças) */}
-        {offlineEvents.map((ponto, index) => (
+        {/* 2. Renderiza os "carimbos" de sinal perdido (filtrados pelo chip selecionado) */}
+        {offlineEventsFiltrados.map((ponto, index) => (
           <CircleMarker
             key={`offline-${index}`}
             center={[ponto.lat, ponto.lng]}
@@ -184,7 +263,8 @@ function App() {
         ))}
 
       </MapContainer>
-      
+      )}
+
     </div>
   );
 }
