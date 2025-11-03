@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "gefron-lte-bdb90",
+    "defaultv3": "gefron-lte-v3"
+  },
+  "targets": {},
+  "etags": {}
+}

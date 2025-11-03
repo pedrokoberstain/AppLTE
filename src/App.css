@@ -4,30 +4,26 @@
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Ocupa 100% da altura da tela */
-  width: 100vw;  /* Ocupa 100% da largura da tela */
+  height: 100vh; 
+  width: 100vw;  
   background-color: #ffffff;
 }
 
-/* --- CABEÇALHO ATUALIZADO --- */
+/* --- CABEÇALHO  --- */
 .header {
   display: flex;
-  align-items: center; /* Alinha logo e título verticalmente */
-  padding: 12px 24px; /* Mais preenchimento */
-  background-color: #1e1e1e; /* Tom de grafite escuro */
+  align-items: center; 
+  padding: 12px 24px; 
+  background-color: #1e1e1e; 
   color: white;
   flex-shrink: 0; 
-  /* Sombra sutil para "elevar" o cabeçalho */
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   z-index: 1000; 
 }
 
-/* Topbar moderno acima do header */
-
-
-/* --- LOGO MAIOR --- */
+/* --- LOGO  --- */
 .logo-gefron {
-  height: 50px; /* Logo aumentada */
+  height: 50px; 
   width: auto;
   margin-right: 18px; 
 }
@@ -35,20 +31,20 @@
 /* Título no cabeçalho */
 .header-title {
   margin: 0; 
-  font-size: 1.6rem; /* Fonte um pouco maior */
+  font-size: 1.6rem; 
   font-weight: 600;
-  color: #f0f0f0; /* Cor de texto mais suave */
+  color: #f0f0f0; /
 }
 
 /* --- NOVO INDICADOR DE STATUS --- */
 .status-indicator {
   display: flex;
   align-items: center;
-  margin-left: auto; /* Joga para a direita */
-  background-color: #333; /* Fundo do "badge" */
+  margin-left: auto; 
+  background-color: #333; 
   padding: 8px 16px;
-  border-radius: 20px; /* Formato de pílula */
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); /* Sombra interna */
+  border-radius: 20px; 
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); 
   transition: all 0.3s ease;
 }
 
@@ -58,21 +54,18 @@
   border-radius: 50%;
   margin-right: 12px;
   border: 1px solid rgba(0,0,0,0.2);
-  /* Animação de pulsação */
   animation: pulse 2s infinite;
 }
 
 .status-dot.online {
   background-color: #28a745;
-  /* Efeito de "glow" (brilho) */
   box-shadow: 0 0 10px 2px #28a745;
 }
 
 .status-dot.offline {
   background-color: #dc3545;
-  /* Efeito de "glow" (brilho) */
   box-shadow: 0 0 10px 2px #dc3545;
-  animation: none; /* Offline não precisa pulsar */
+  animation: none;
 }
 
 .status-text {
@@ -123,7 +116,7 @@
 
 /* Overlay de seleção moderno */
 .selection-overlay { position:fixed; inset:0; background: rgba(2,6,23,0.6); display:flex; align-items:center; justify-content:center; z-index:1200; }
-.selection-card { background: #0f1724; color: #e6eef5; padding:20px; border-radius:12px; width:420px; max-width:95%; box-shadow: 0 12px 40px rgba(2,6,23,0.7); }
+.selection-card { background: linear-gradient(180deg,#0b2538 0%,#071526 100%); color: #e6eef5; padding:20px; border-radius:12px; width:420px; max-width:95%; box-shadow: 0 12px 40px rgba(2,6,23,0.7); }
 .selection-card h2 { margin:0 0 12px 0; font-size:1.2rem; }
 .selection-list { display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:260px; overflow:auto; padding-right:6px; }
 .selection-list label { display:flex; align-items:center; gap:8px; padding:8px; border-radius:8px; background: rgba(255,255,255,0.02); cursor:pointer; }

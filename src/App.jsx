@@ -1,5 +1,3 @@
-// gefron-central/src/App.jsx
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { db } from './firebaseConfig'; 
 import { ref, onValue } from 'firebase/database';
@@ -11,8 +9,6 @@ import './App.css'; // Importa o CSS que acabamos de mudar
 import logoGefron from './assets/gefron-logo.jpg'; 
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css'; 
 import 'leaflet-defaulticon-compatibility';
-
-// (Removemos o 'statusIndicatorStyle' daqui, pois agora está no CSS)
 
 function App() {
   const [pontos, setPontos] = useState([]);
@@ -30,7 +26,6 @@ function App() {
       try {
         mapInstance.setView(mapCenter);
       } catch (e) {
-        // noop
       }
     }
   }, [mapInstance, mapCenter]);
@@ -97,7 +92,7 @@ function App() {
       }
     });
 
-    return () => { try { unsubscribe(); } catch (e) { /* noop */ } };
+    return () => { try { unsubscribe(); } catch (e) {  } };
   }, []);
 
   // 'useEffect' VIGILANTE (sem mudanças)
@@ -149,13 +144,13 @@ function App() {
         <div className="chip-selector">
           {confirmedChips ? (
             <>
-              <span>Celular(s) selecionado(s): <b>{confirmedChips.includes('all') ? 'Todos os celulares' : confirmedChips.join(', ')}</b></span>
+              <span>Rastreamentos ativos: <b>{confirmedChips.includes('all') ? 'Todos os celulares' : confirmedChips.join(', ')}</b></span>
               <button className="btn small" onClick={() => setConfirmedChips(null)}>Alterar</button>
-              <span className="chip-count">Pontos: {pontosFiltrados.length}</span>
+              <span className="chip-count">Pontos no mapa: {pontosFiltrados.length}</span>
             </>
           ) : (
             <>
-              <button className="btn" onClick={() => { setSelectedChips([]); setConfirmedChips(null); }}>Selecionar celular</button>
+              <button className="btn" onClick={() => { setSelectedChips([]); setConfirmedChips(null); }}>Selecionar chip</button>
             </>
           )}
         </div>
@@ -165,7 +160,7 @@ function App() {
       { !confirmedChips && (
         <div className="selection-overlay">
           <div className="selection-card">
-            <h2>Selecionar celular(es)</h2>
+            <h2>Selecione os rastreamentos</h2>
             {chipList.length === 1 && chipList[0] === 'all' ? (
               <p>Carregando lista de celulares...</p>
             ) : (
@@ -178,7 +173,6 @@ function App() {
                     onChange={(values) => {
                       if (!values) return setSelectedChips([]);
                       const vals = values.map(v => v.value);
-                      // if 'all' selected, keep only 'all'
                       if (vals.includes('all')) setSelectedChips(['all']);
                       else setSelectedChips(vals);
                     }}
